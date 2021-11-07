@@ -1,5 +1,6 @@
 #!/bin/bash
 AXIOM_PATH="$HOME/.axiom"
+source "$AXIOM_PATH/interact/includes/vars.sh"
 cat << EOF
 
  ▄▄▄      ▒██   ██▒ ██▓ ▒█████   ███▄ ▄███▓
@@ -18,6 +19,27 @@ We are lucky enough to be sponsored by the awesome SecurityTrails!
 Sign up for your free account here! https://securitytrails.com/app/account?utm_source=axiom
 
 EOF
+
+###########################################################################################################
+# Help Menu
+# 
+function usage() {
+        echo -e "${BWhite}Description:"
+        echo -e "${BWhite}Examples:${Color_Off}"
+        echo -e "  ${Blue}axiom-configure${Color_Off} # kick off axiom configuration wizard"
+        echo -e "  ${Blue}axiom-configure --config <axiom.json config data>${Color_Off} # Use plaintext axiom.json data for account setup TODO: support axiom.json as a file"
+        echo -e "  ${Blue}axiom-configure --unattended${Color_Off} # Install unattended, automatically install and pick Bash shell"
+        echo -e "  ${Blue}axiom-configure --config <axiom.json config data> --unattended${Color_Off} "
+        echo -e "${BWhite}Usage:${Color_Off}"
+        echo -e "  <name> string (optional)"
+        echo -e "    Name of the instance, supplied as a positional first argument"
+        echo -e "  --config <axiom.json data>"
+        echo -e "    Setup account with data supplied from the command line (must be vaild data from axiom.json)"
+        echo -e "  --unattended (optional)"
+        echo -e "    Avoid any promots, use bash as a default terminal "
+        echo -e "  --help"
+        echo -e "    Display this help menu"
+}
 
 # Parse command line arguments 
 #
@@ -39,6 +61,17 @@ do
             set=true
             pass+=($i)
             pass+=($n)
+        fi
+        if [[ "$arg" == "--unattended" ]]; then
+            unattended=true          
+            set=true
+            pass+=($i)
+        fi
+        if [[ "$arg" == "--help" ]] || [[ "$arg" == "-h" ]] || [[ "$arg" == "help" ]]; then
+            usage
+            exit
+            set=true
+            pass+=($i)
         fi
 fi
 done
@@ -77,17 +110,17 @@ case $BASEOS in
 'AIX') ;;
 *) ;;
 esac
+
 if [[ $BASEOS == "Linux" ]]; then
     if $(uname -a | grep -qi "Microsoft"); then
         OS="UbuntuWSL"
     else
         OS=$(lsb_release -i | awk '{ print $3 }')
         if ! command -v lsb_release &> /dev/null; then
-            echo "WARNING: This install might not work"
+            echo "WARNING: Unless using Ubuntu latest, this install might not work"
             echo "lsb_release could not be found, unable to determine your distribution"
             OS="unknown-Linux"
             BASEOS="Linux"
-            shell="bash"
         fi
     fi
     if [[ $OS == "Arch" ]] || [[ $OS == "ManjaroLinux" ]]; then
@@ -197,7 +230,7 @@ if [[ $BASEOS == "Mac" ]]; then
 fi
 
 if [[ $BASEOS == "Linux" ]]; then
-if [[ $shell == "bash" ]]; then
+if [[ $unattended == "true" ]]; then
     if ! [ -x "$(command -v go)" ]; then
     echo -e "${Blue}Installing Golang${Color_Off}"
     wget -q https://golang.org/dl/go1.17.1.linux-amd64.tar.gz && sudo tar -C /usr/local -xzf go1.17.1.linux-amd64.tar.gz && rm go1.17.1.linux-amd64.tar.gz
@@ -239,7 +272,7 @@ echo -e "${Blue}Would you like to use Bash, Zsh, or install Oh My Zsh?${Color_Of
     echo -e "${Green}You're running Bash! Installing Axiom to \$PATH...${Color_Off}"
     echo "export PATH=\"\$PATH:\$HOME/.axiom/interact\"" >>~/.bashrc
     echo "[[ -f ~/.bashrc ]] && . ~/.bashrc" >> ${HOME}/.bash_profile
-    source ~/.bashrc 
+    source ~/.bashrc  >> /dev/null 2>&1
   break
    ;;
    Zsh)
@@ -256,9 +289,9 @@ echo -e "${Blue}Would you like to use Bash, Zsh, or install Oh My Zsh?${Color_Of
     echo "export GOPATH=\$HOME/go" >>~/.zshrc
     echo "export PATH=\$GOPATH/bin:/usr/local/go/bin:$PATH" >>~/.zshrc
     echo -e "${Green}You're running ZSH! Installing Axiom to \$PATH...${Color_Off}"
-    echo "export PATH=\"\$PATH:\$HOME/.axiom/interact\"" >>~/.zshrc 
-    echo "source $HOME/.axiom/functions/autocomplete.zsh" >>~/.zshrc 
-    source ${HOME}/.zshrc
+    echo "export PATH=\"\$PATH:\$HOME/.axiom/interact\"" >>~/.zshrc  >> /dev/null 2>&1
+    echo "source $HOME/.axiom/functions/autocomplete.zsh" >>~/.zshrc  >> /dev/null 2>&1
+    source ${HOME}/.zshrc >> /dev/null 2>&1
     SHELL=$(which zsh)
   break
    ;;
@@ -278,9 +311,9 @@ echo -e "${Blue}Would you like to use Bash, Zsh, or install Oh My Zsh?${Color_Of
     echo "export GOPATH=\$HOME/go" >>~/.zshrc
     echo "export PATH=\$GOPATH/bin:/usr/local/go/bin:$PATH" >>~/.zshrc
     echo -e "${Green}You're running ZSH! Installing Axiom to \$PATH...${Color_Off}"
-    echo "export PATH=\"\$PATH:\$HOME/.axiom/interact\"" >>~/.zshrc 
-    echo "source $HOME/.axiom/functions/autocomplete.zsh" >>~/.zshrc 
-    source ${HOME}/.zshrc
+    echo "export PATH=\"\$PATH:\$HOME/.axiom/interact\"" >>~/.zshrc  >> /dev/null 2>&1
+    echo "source $HOME/.axiom/functions/autocomplete.zsh" >>~/.zshrc   >> /dev/null 2>&1
+    source ${HOME}/.zshrc  >> /dev/null 2>&1
     SHELL=$(which zsh)
    break
    ;;
